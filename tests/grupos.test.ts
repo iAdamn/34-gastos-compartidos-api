@@ -1,3 +1,5 @@
+import crypto from "node:crypto";
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET as listGroups, POST as createGroup } from "@/app/api/grupos/route";
@@ -70,10 +72,11 @@ describe("POST /api/grupos", () => {
   it("si el codigo ya existe genera otro", async () => {
     const first = await createAsAna();
     // Se fuerza el azar para que el primer intento repita el codigo que ya existe.
-    const random = vi.spyOn(Math, "random");
+    const random = vi.spyOn(crypto, "randomInt");
     const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     for (const character of first.codigo) {
-      random.mockReturnValueOnce(alphabet.indexOf(character) / alphabet.length);
+      const value = (alphabet.indexOf(character) / alphabet.length) * 2 ** 32;
+      random.mockImplementationOnce(() => value);
     }
     const second = await createAsAna();
     random.mockRestore();

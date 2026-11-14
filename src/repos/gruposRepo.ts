@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import crypto from "node:crypto";
 
 import { generateGroupCode } from "@/src/domain/groupCode";
 import { conflict, notFound } from "@/src/lib/errors";
@@ -17,11 +17,18 @@ function isAlreadyExists(error: unknown): boolean {
   );
 }
 
+// El codigo de un grupo sirve para entrar, asi que no debe poder adivinarse.
+// Por eso el azar sale de crypto (seguro) y no de Math.random.
+function secureRandom(): number {
+  const range = 2 ** 32;
+  return crypto.randomInt(0, range) / range;
+}
+
 // Reserva un codigo unico creando codigos_grupo/{codigo} con create().
 // Si el codigo ya existe, create() falla y se intenta con otro.
 async function reserveCode(gid: string): Promise<string> {
   for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt += 1) {
-    const code = generateGroupCode(Math.random);
+    const code = generateGroupCode(secureRandom);
     try {
       await getDb().collection(CODES).doc(code).create({ gid });
       return code;
@@ -35,7 +42,7 @@ async function reserveCode(gid: string): Promise<string> {
 }
 
 export async function createGroup(uid: string, nombre: string, miNombre: string): Promise<Group> {
-  const id = randomUUID();
+  const id = crypto.randomUUID();
   const codigo = await reserveCode(id);
   const group: Group = {
     id,
