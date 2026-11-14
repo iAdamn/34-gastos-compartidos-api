@@ -1,0 +1,9 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Nadie entra a Firestore desde un cliente. Solo la API, con el Admin SDK.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
