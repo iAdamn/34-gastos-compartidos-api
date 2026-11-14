@@ -40,7 +40,31 @@ Los valores reales viven solo en Vercel. En `env.example` hay valores falsos de 
 
 ## Rutas
 
-Por ahora solo existe `GET /api/health`. El resto esta en `docs/contrato-api.md`.
+Todas menos health, registro, login y refresh piden la cabecera `Authorization: Bearer <token>`.
+El detalle de cada una esta en `docs/contrato-api.md`.
+
+| Ruta                                  | Que hace                                     |
+| ------------------------------------- | -------------------------------------------- |
+| `GET /api/health`                     | Dice si la API esta arriba                   |
+| `POST /api/auth/registro`             | Crea la cuenta y devuelve los tokens         |
+| `POST /api/auth/login`                | Inicia sesion                                |
+| `POST /api/auth/refresh`              | Cambia el refreshToken por un token nuevo    |
+| `GET /api/auth/yo`                    | Devuelve el usuario del token                |
+| `POST /api/grupos`                    | Crea un grupo con su codigo                  |
+| `GET /api/grupos`                     | Mis grupos                                   |
+| `POST /api/grupos/unirse`             | Entra a un grupo con el codigo               |
+| `POST /api/grupos/:gid/gastos`        | Registra un gasto                            |
+| `DELETE /api/grupos/:gid/gastos/:id`  | Elimina un gasto, solo quien lo creo         |
+| `POST /api/grupos/:gid/pagos`         | Registra un pago entre dos miembros          |
+| `GET /api/grupos/:gid/balance`        | Saldo de cada miembro y pagos sugeridos      |
+| `GET /api/grupos/:gid/cambios?since=` | Gastos y pagos modificados, para sincronizar |
+
+Las rutas de un grupo responden 403 si el usuario no es miembro.
+
+## Como estan hechas las pruebas
+
+Firebase no se usa de verdad en las pruebas. `tests/helpers/fakeFirestore.ts` es un Firestore en memoria
+y las llamadas a Firebase Auth se reemplazan con respuestas de mentira. Asi no hace falta ninguna clave en el computador.
 
 ## Dependencias y por que
 
