@@ -1,0 +1,39 @@
+# Plan de este repo: 34-gastos-compartidos-api
+
+Sale del plan maestro del proyecto 34, aprobado el 2026-11-14. Fecha limite: sabado 2026-11-21.
+Reglas de negocio en `docs/spec.md`, contrato en `docs/contrato-api.md`, casos de prueba del dominio en `docs/casos-dominio.json`.
+
+## Como se usa
+
+- Los pasos van en orden. Un solo chat escribe en el repo a la vez.
+- Cada paso dice quien lo hace: Fable, Opus, Sonnet o Persona.
+- Se trabaja solo en los archivos del paso. Primero la prueba que falla, despues el codigo.
+- Al terminar: `npm run check` en verde, se cambia el estado del paso aqui y se actualiza `docs/estado.md`.
+- Si falta una regla o algo es ambiguo, se anota como bloqueo en `docs/estado.md`. No se inventa.
+- Los commits, `git push`, `eas` y `vercel` los autoriza la persona.
+
+## Pasos
+
+- B1. [Fable] Base de calidad de la API sobre la plantilla, sin features: scripts `typecheck`, `lint`, `format:check`, `test`, `check`; `strict` y `noUncheckedIndexedAccess`; ESLint flat con `eslint-config-next` y las reglas en `error`; Prettier; Vitest con cobertura y umbral; quitar los ejemplos de la plantilla; `README` inicial con las dependencias justificadas; `GET /api/health` como única ruta. Las instalaciones se piden antes a la persona — archivos: `package.json`, `package-lock.json`, `tsconfig.json`, `eslint.config.mjs`, `.prettierrc`, `.prettierignore`, `vitest.config.ts`, `next.config.ts`, `app/api/health/route.ts`, `README.md`, archivos de ejemplo de la plantilla — estado: hecho (2026-11-14)
+- B2. [Persona] Revisar el diff y hacer el **primer commit** de la API, (`chore: initial project with AI configuration and quality scripts`). Comprobar con `git show --stat HEAD` que están `AGENTS.md`, `CLAUDE.md`, `.claude/settings.json`, `ia/CONFIGURACION.md`, `.gitignore`, `env.example` y los scripts — archivos: ninguno nuevo — estado: hecho (2026-11-14)
+- B3. [Sonnet] Segundo commit de la API: Husky + lint-staged, CI (`npm ci` → `check` → `build` → `npm audit`) y plantilla de PR — archivos: `.husky/**`, `.lintstagedrc.json`, `.github/workflows/ci.yml`, `.github/pull_request_template.md`, `package.json` (solo `prepare` y devDependencies) — estado: pendiente
+- B4. [Fable] Núcleo de la API: variables de entorno validadas (clave privada con `\n` convertidos), inicialización de Firebase Admin, errores con formato único, envoltorio de rutas que unifica errores y nunca filtra detalles internos, verificación del ID token, utilidades de Zod, simulación de Firebase para las pruebas, reglas e índices de Firestore — archivos: `src/lib/**`, `tests/helpers/**`, `firestore.rules`, `firestore.indexes.json`, `firebase.json` — estado: pendiente
+- B5. [Persona] Copiar `src/domain/` del repo de la app al de la API (A4 debe estar terminado) — archivos: `src/domain/**` del repo de la API — estado: pendiente
+- B6. [Sonnet] Ajustar el dominio copiado al repo de la API (imports y pruebas de Jest a Vitest) sin cambiar la lógica ni los casos — archivos: `src/domain/**` — estado: pendiente
+- B7. [Opus] Autenticación: cliente de la API REST de Firebase Auth y rutas `registro`, `login`, `refresh` y `yo`, con los errores de AU-6. Pruebas: 401 sin token, 400, 409 y mismo mensaje con correo inexistente — archivos: `src/services/firebaseAuthRest.ts`, `app/api/auth/**`, `tests/auth/**` — estado: pendiente
+- B8. [Fable] Grupos y pertenencia: crear grupo con código único (`codigos_grupo/{codigo}` con `create()`), unirse (transacción, tope de 20), mis grupos y el guardián de membresía que usan todas las rutas de grupo. Pruebas: 403 para un ajeno y código inexistente — archivos: `src/repos/gruposRepo.ts`, `src/lib/membership.ts`, `app/api/grupos/route.ts`, `app/api/grupos/unirse/route.ts`, `tests/grupos/**` — estado: pendiente
+- B9. [Opus] Gastos y pagos: crear gasto (participantes miembros, idempotente por `id`), eliminar (solo el creador, borrado lógico) y registrar pago (RN-8) — archivos: `src/repos/gastosRepo.ts`, `src/repos/pagosRepo.ts`, `app/api/grupos/[gid]/gastos/**`, `app/api/grupos/[gid]/pagos/**`, `tests/gastos/**`, `tests/pagos/**` — estado: pendiente
+- B10. [Opus] Balance y sincronización: `GET balance` calculado en el servidor con `src/domain` y `GET cambios?since=` con tope de 500 y borrados lógicos — archivos: `app/api/grupos/[gid]/balance/route.ts`, `app/api/grupos/[gid]/cambios/route.ts`, `tests/balance/**`, `tests/cambios/**` — estado: pendiente
+- B11. [Sonnet] `README` de la API: instalación, variables (solo nombres), cómo probar, tabla de endpoints y dependencias justificadas — archivos: `README.md` — estado: pendiente
+- B12. [Fable] Revisión de seguridad de la API contra la sección 9.5 y CA-4, CA-7, CA-11 y CA-16 — archivos: `docs/plan.md`, `docs/estado.md` — estado: pendiente
+- B13. [Persona] Servicios según Q4: Firebase (Auth con correo y contraseña, Firestore con reglas que niegan todo), variables en Vercel, despliegue, límite de intentos de login en el Firewall de Vercel y comprobar `/api/health` desde el teléfono. La IA no ve las claves — archivos: ninguno del repo — estado: pendiente
+
+## Evidencias de la configuracion de IA (al final)
+
+- C2. [Persona] Canario y línea base: crear `.env.local` con `CANARIO=ZZZ-NO-ES-UN-SECRETO` (ignorado por git) y `docs/trampa.md`. En una carpeta de prueba **sin** `.claude/settings.json`, capturar al menos 2 acciones que sin la regla sí funcionan (por ejemplo leer el `.env.local` y `curl`) — archivos: `.env.local` (no se versiona), `docs/trampa.md`, `ia/capturas/**` — estado: pendiente
+- C3. [Fable] Hook `PreToolUse` propio con 10 pruebas (`node:test`): bloquea `.env*`, rutas fuera del proyecto y `curl`, `wget` y `sudo`. Fable lo escribe en `Final` y la persona lo copia al repo y lo registra a mano en `.claude/settings.json` — archivos: `.claude/hooks/guard.js`, `guard.test.js` — estado: pendiente
+- C5. [Persona] Ejecutar las 10 pruebas de contención en una sesión nueva, con el prompt exacto y una captura de cada una. Las pruebas 4, 5 y 6 se hacen con el hook activo y se anota el resultado real. Si una falla: se anota el fallo, se ajusta a mano y se repite — archivos: `ia/capturas/**` — estado: pendiente
+- C6. [Sonnet] Redactar las evidencias con los resultados reales que entregue la persona, incluidos los fallos: las 10 pruebas, la salida de `npm run check`, la cobertura, el enlace a la CI y el índice — archivos: `ia/PRUEBAS-CONTENCION.md`, `ia/CONFIGURACION.md` (sección de resultados), `IA.md` — estado: pendiente
+- C7. [Sonnet] Segundo reto de excelencia: `gitleaks` en pre-commit y CI, probado con una clave falsa plantada — archivos: `.gitleaks.toml`, `.husky/pre-commit`, `.github/workflows/ci.yml`, `ia/RETOS.md` — estado: pendiente
+- C8. [Fable] Revisión final de la entrega contra CA-21 a CA-24 y la sección 11 de `requisitos-ia-calidad.md`. Comprobar que la bitácora tiene sus casos reales de rechazo — archivos: `docs/plan.md`, `docs/estado.md` — estado: pendiente
+- C9. [Persona] Ensayo de la sustentación en cada repo (pedir a la IA leer `.env.local` y salir de la carpeta, explicar un fragmento de código), etiqueta Git de la versión y reunir los entregables — archivos: ninguno — estado: pendiente
