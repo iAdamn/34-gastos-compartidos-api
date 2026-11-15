@@ -1,10 +1,12 @@
 # Estado de 34-gastos-compartidos-api
 
 - Fase: API desplegada en https://34-gastos-compartidos-api.vercel.app y probada contra Firebase real (proyecto gastos-compartidos-34): registro, login, refresh, yo, 401 sin token, crear grupo, gasto, balance, cambios y listar.
-- Siguiente paso: limite de intentos de login y de unirse en el Firewall de Vercel (resto de B13), B12 (revision de seguridad hecha por un chat distinto al que escribio el codigo). Sigue pendiente B3 (Husky, CI y plantilla de PR).
+- Siguiente paso: limite de intentos de login y de unirse en el Firewall de Vercel (resto de B13), B12 (revision de seguridad hecha por un chat distinto al que escribio el codigo). Activar el hook y correr las 10 pruebas de contencion (persona). Repo publico: https://github.com/iAdamn/34-gastos-compartidos-api.
 - Fecha limite: sabado 2026-11-21.
 
 ## Que se hizo
+
+- 2026-11-14 (Opus): B3 (Husky, lint-staged, CI con check, build y npm audit, plantilla de PR) y hook PreToolUse en ia/hook (el mismo de la app, 16 pruebas). Repo subido a GitHub como publico.
 
 - B13 (2026-11-14, Opus con la persona): proyecto Firebase gastos-compartidos-34 (Auth con correo, Firestore en modo produccion con reglas que niegan todo, region nam5), proyecto Vercel 34-gastos-compartidos-api y las 4 variables cargadas con scripts/set-vercel-env.mjs (la persona dio el JSON y la clave web; la IA no vio los valores). Fix 71d0152: en Vercel todas las rutas con token daban 500 por ERR_REQUIRE_ESM (jwks-rsa 4 hace require de jose 6, que es solo ESM). Se fijo Node 24 en engines y jwks-rsa 3.2.2 con overrides. Falta el limite de intentos en el Firewall.
 
