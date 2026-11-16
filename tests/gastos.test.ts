@@ -115,6 +115,21 @@ describe("acceso a un grupo", () => {
   });
 });
 
+describe("identificadores de la URL", () => {
+  it("un gid que no es UUID responde 404 y no un error interno", async () => {
+    const response = await getBalance(
+      makeRequest("GET", "/api/grupos/a%2Fb/balance", { token: "token-ana" }),
+      params({ gid: "a/b" }),
+    );
+
+    expect(response.status).toBe(404);
+  });
+
+  it("eliminar con un id que no es UUID responde 404", async () => {
+    expect((await removeExpense("token-ana", "a/b")).status).toBe(404);
+  });
+});
+
 describe("POST /api/grupos/:gid/gastos", () => {
   it("crea el gasto y guarda quien lo creo segun el token", async () => {
     const response = await postExpense("token-beto", {
@@ -141,6 +156,20 @@ describe("POST /api/grupos/:gid/gastos", () => {
     expect(changes.gastos).toHaveLength(1);
   });
 
+  it("dos envios simultaneos del mismo id guardan uno solo y no pisan a quien lo creo", async () => {
+    const responses = await Promise.all([
+      postExpense("token-ana", expenseBody),
+      postExpense("token-beto", expenseBody),
+    ]);
+    const statuses = responses.map((response) => response.status).sort();
+    const creators = await Promise.all(
+      responses.map(async (response) => (await response.json()).gasto.creado_por),
+    );
+
+    expect(statuses).toEqual([200, 201]);
+    expect(new Set(creators).size).toBe(1);
+  });
+
   it.each([
     ["monto en cero", { monto_centavos: 0 }],
     ["monto con centavos sueltos", { monto_centavos: 150 }],
@@ -151,6 +180,7 @@ describe("POST /api/grupos/:gid/gastos", () => {
     ["pagador que no es miembro", { pagador_uid: "dani" }],
     ["descripcion vacia", { descripcion: "  " }],
     ["fecha mal escrita", { fecha: "14/11/2026" }],
+    ["fecha que no existe", { fecha: "2026-13-45" }],
     ["id que no es UUID", { id: "abc" }],
     ["porcentajes que suman 99", { porcentajes: { ana: 50, beto: 30, caro: 19 } }],
     ["porcentajes de otras personas", { porcentajes: { ana: 50, beto: 50 } }],
@@ -303,5 +333,11 @@ describe("GET /api/grupos/:gid/cambios", () => {
 
   it("responde 400 si since no es una fecha", async () => {
     expect((await changesFor("token-ana", "?since=ayer")).status).toBe(400);
+  });
+
+  it("responde 400 si since es una fecha pero no en formato ISO", async () => {
+    const query = `?since=${encodeURIComponent("Nov 15 2026")}`;
+
+    expect((await changesFor("token-ana", query)).status).toBe(400);
   });
 });

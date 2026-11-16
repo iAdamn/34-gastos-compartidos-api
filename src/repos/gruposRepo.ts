@@ -3,19 +3,12 @@ import crypto from "node:crypto";
 import { generateGroupCode } from "@/src/domain/groupCode";
 import { conflict, notFound } from "@/src/lib/errors";
 import { getDb } from "@/src/lib/firebase";
+import { isAlreadyExists } from "@/src/lib/firestoreErrors";
 import { MAX_GROUP_MEMBERS, type Group } from "@/src/lib/types";
 
 const GROUPS = "grupos";
 const CODES = "codigos_grupo";
-// Codigo de error de Firestore cuando create() encuentra que el documento ya existe.
-const ALREADY_EXISTS = 6;
 const MAX_CODE_ATTEMPTS = 5;
-
-function isAlreadyExists(error: unknown): boolean {
-  return (
-    typeof error === "object" && error !== null && "code" in error && error.code === ALREADY_EXISTS
-  );
-}
 
 // El codigo de un grupo sirve para entrar, asi que no debe poder adivinarse.
 // Por eso el azar sale de crypto (seguro) y no de Math.random.

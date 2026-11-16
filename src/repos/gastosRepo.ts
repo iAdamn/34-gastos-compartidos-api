@@ -1,5 +1,6 @@
 import { forbidden, notFound } from "@/src/lib/errors";
 import { getDb } from "@/src/lib/firebase";
+import { isAlreadyExists } from "@/src/lib/firestoreErrors";
 import { MAX_SYNC_ITEMS, type Expense } from "@/src/lib/types";
 import type { ExpenseInput } from "@/src/lib/validation";
 
@@ -9,17 +10,14 @@ function expensesOf(gid: string) {
   return getDb().collection("grupos").doc(gid).collection("gastos");
 }
 
-// Crea el gasto. Si ya existe uno con ese id devuelve el guardado: repetir el envio no duplica.
+// Crea el gasto con create(), que falla si el id ya existe. Asi dos envios al mismo tiempo
+// no se pisan. Si ya existia se devuelve el guardado: repetir el envio no duplica.
 export async function createExpense(
   gid: string,
   uid: string,
   input: ExpenseInput,
 ): Promise<{ expense: Expense; created: boolean }> {
   const ref = expensesOf(gid).doc(input.id);
-  const existing = (await ref.get()).data() as Expense | undefined;
-  if (existing) {
-    return { expense: existing, created: false };
-  }
   const now = new Date().toISOString();
   const expense: Expense = {
     ...input,
@@ -30,8 +28,15 @@ export async function createExpense(
     updated_at: now,
     deleted_at: null,
   };
-  await ref.set(expense);
-  return { expense, created: true };
+  try {
+    await ref.create(expense);
+    return { expense, created: true };
+  } catch (error) {
+    if (!isAlreadyExists(error)) {
+      throw error;
+    }
+    return { expense: (await ref.get()).data() as Expense, created: false };
+  }
 }
 
 // Borrado logico. Solo quien creo el gasto puede eliminarlo.

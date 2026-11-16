@@ -1,4 +1,5 @@
 import { getDb } from "@/src/lib/firebase";
+import { isAlreadyExists } from "@/src/lib/firestoreErrors";
 import { MAX_SYNC_ITEMS, type Payment } from "@/src/lib/types";
 import type { PaymentInput } from "@/src/lib/validation";
 
@@ -8,21 +9,25 @@ function paymentsOf(gid: string) {
   return getDb().collection("grupos").doc(gid).collection("pagos");
 }
 
-// Registra el pago. Si ya existe uno con ese id devuelve el guardado: repetir el envio no duplica.
+// Registra el pago con create(), que falla si el id ya existe.
+// Si ya existia se devuelve el guardado: repetir el envio no duplica.
 export async function createPayment(
   gid: string,
   uid: string,
   input: PaymentInput,
 ): Promise<{ payment: Payment; created: boolean }> {
   const ref = paymentsOf(gid).doc(input.id);
-  const existing = (await ref.get()).data() as Payment | undefined;
-  if (existing) {
-    return { payment: existing, created: false };
-  }
   const now = new Date().toISOString();
   const payment: Payment = { ...input, fecha: now, creado_por: uid, updated_at: now };
-  await ref.set(payment);
-  return { payment, created: true };
+  try {
+    await ref.create(payment);
+    return { payment, created: true };
+  } catch (error) {
+    if (!isAlreadyExists(error)) {
+      throw error;
+    }
+    return { payment: (await ref.get()).data() as Payment, created: false };
+  }
 }
 
 export async function listPayments(gid: string): Promise<Payment[]> {

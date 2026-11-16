@@ -1,6 +1,7 @@
 import { badRequest } from "@/src/lib/errors";
 import { handle, json } from "@/src/lib/http";
 import { requireMember } from "@/src/lib/membership";
+import { isIsoDateTime } from "@/src/lib/validation";
 import { listChangedExpenses } from "@/src/repos/gastosRepo";
 import { listChangedPayments } from "@/src/repos/pagosRepo";
 
@@ -8,13 +9,17 @@ export const runtime = "nodejs";
 
 type Context = { params: Promise<{ gid: string }> };
 
-// Lee el parametro since de la URL. Debe ser una fecha, o no venir.
+// Lee el parametro since de la URL. Debe ser una fecha ISO, o no venir.
+// Se devuelve normalizada, porque Firestore compara las fechas como texto.
 function readSince(request: Request): string | null {
   const since = new URL(request.url).searchParams.get("since");
-  if (since !== null && Number.isNaN(Date.parse(since))) {
+  if (since === null) {
+    return null;
+  }
+  if (!isIsoDateTime(since)) {
     throw badRequest("Datos invalidos", [{ campo: "since", mensaje: "Debe ser una fecha ISO" }]);
   }
-  return since;
+  return new Date(since).toISOString();
 }
 
 // Sincronizacion por grupo: gastos y pagos modificados despues de since.

@@ -10,6 +10,22 @@ const amount = z
   .number()
   .refine(isValidAmount, "Debe ser un entero en centavos, mayor que 0 y multiplo de 100");
 
+// Revisa que una fecha YYYY-MM-DD exista de verdad. 2026-13-45 tiene la forma pero no existe.
+function isRealDate(value: string): boolean {
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+// Los id de grupos, gastos y pagos son UUID. Otro texto no puede existir en la base.
+export function isUuid(value: string): boolean {
+  return z.uuid().safeParse(value).success;
+}
+
+// Fecha y hora en formato ISO, como 2026-11-14T12:00:00.000Z.
+export function isIsoDateTime(value: string): boolean {
+  return z.iso.datetime().safeParse(value).success;
+}
+
 export const registerSchema = z.object({
   email: z.email("Correo invalido"),
   password: z.string().min(8, "La contrasena debe tener al menos 8 caracteres"),
@@ -44,7 +60,10 @@ export const expenseSchema = z.object({
   monto_centavos: amount,
   participantes: z.array(uid).min(1).max(20),
   porcentajes: z.record(z.string(), z.number().int().min(1)).nullable(),
-  fecha: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "La fecha debe ser YYYY-MM-DD"),
+  fecha: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "La fecha debe ser YYYY-MM-DD")
+    .refine(isRealDate, "Esa fecha no existe"),
 });
 
 export const paymentSchema = z.object({
