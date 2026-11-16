@@ -7,25 +7,31 @@ Hecha con Next.js (Route Handlers), Firebase Admin, Zod y Vitest. Se despliega e
 
 ## Como instalar y correr
 
+Hace falta Node 24 (esta fijado en `engines`).
+
 ```bash
 npm install
+cp env.example .env.local   # y poner las claves de tu proyecto de Firebase
 npm run dev
 ```
 
-Queda en http://localhost:3000. Para probar que responde: http://localhost:3000/api/health
+Queda en http://localhost:3000. Para probar que responde: http://localhost:3000/api/health.
+La API publicada esta en https://34-gastos-compartidos-api.vercel.app.
 
 ## Comandos
 
-| Comando                | Que hace                                          |
-| ---------------------- | ------------------------------------------------- |
-| `npm run dev`          | Servidor local                                    |
-| `npm run build`        | Compila para produccion                           |
-| `npm run typecheck`    | Revisa los tipos con TypeScript                   |
-| `npm run lint`         | ESLint, no acepta warnings                        |
-| `npm run format`       | Arregla el formato con Prettier                   |
-| `npm run format:check` | Revisa el formato sin cambiar nada                |
-| `npm test`             | Pruebas con cobertura                             |
-| `npm run check`        | Corre typecheck, lint, format:check y las pruebas |
+| Comando                | Que hace                                              |
+| ---------------------- | ----------------------------------------------------- |
+| `npm run dev`          | Servidor local                                        |
+| `npm run build`        | Compila para produccion                               |
+| `npm start`            | Sirve lo compilado con `npm run build`                |
+| `npm run typecheck`    | Revisa los tipos con TypeScript                       |
+| `npm run lint`         | ESLint, no acepta warnings                            |
+| `npm run format`       | Arregla el formato con Prettier                       |
+| `npm run format:check` | Revisa el formato sin cambiar nada                    |
+| `npm test`             | Pruebas con cobertura                                 |
+| `npm run test:hook`    | Pruebas del hook de IA (`ia/hook/`)                   |
+| `npm run check`        | Corre typecheck, lint, format:check, test y test:hook |
 
 Si `npm run check` no pasa, el trabajo no esta terminado.
 
@@ -61,6 +67,12 @@ El detalle de cada una esta en `docs/contrato-api.md`.
 
 Las rutas de un grupo responden 403 si el usuario no es miembro.
 
+## Despliegue
+
+Se despliega en Vercel. Las cuatro variables de arriba se cargan en el proyecto con `scripts/set-vercel-env.mjs`,
+que lee el JSON de la cuenta de servicio sin mostrarlo. En el Firewall de Vercel hay un limite de 10 peticiones por minuto por IP
+para login, registro, refresh y unirse.
+
 ## Como estan hechas las pruebas
 
 Firebase no se usa de verdad en las pruebas. `tests/helpers/fakeFirestore.ts` es un Firestore en memoria
@@ -68,18 +80,21 @@ y las llamadas a Firebase Auth se reemplazan con respuestas de mentira. Asi no h
 
 ## Dependencias y por que
 
-| Paquete               | Para que                                                          |
-| --------------------- | ----------------------------------------------------------------- |
-| `next`                | Framework de la API, lo pide el enunciado                         |
-| `firebase-admin`      | Verificar tokens y leer o escribir en Firestore desde el servidor |
-| `zod`                 | Validar todo lo que llega en las peticiones                       |
-| `vitest`              | Correr las pruebas, lo pide el enunciado                          |
-| `@vitest/coverage-v8` | Medir la cobertura de las pruebas                                 |
-| `prettier`            | Formato igual en todo el codigo                                   |
-| `eslint`              | Reglas de calidad, venia con la plantilla                         |
-| `eslint-config-next`  | Reglas de ESLint para Next, venia con la plantilla                |
-| `typescript`          | Tipos, venia con la plantilla                                     |
-| `@types/node`         | Tipos de Node. Se subio a la version 24 porque Vitest lo exige    |
+| Paquete                            | Para que                                                                  |
+| ---------------------------------- | ------------------------------------------------------------------------- |
+| `next`                             | Framework de la API, lo pide el enunciado                                 |
+| `firebase-admin`                   | Verificar tokens y leer o escribir en Firestore desde el servidor         |
+| `zod`                              | Validar todo lo que llega en las peticiones                               |
+| `vitest`                           | Correr las pruebas, lo pide el enunciado                                  |
+| `@vitest/coverage-v8`              | Medir la cobertura de las pruebas                                         |
+| `prettier`                         | Formato igual en todo el codigo                                           |
+| `eslint`                           | Reglas de calidad, venia con la plantilla                                 |
+| `eslint-config-next`               | Reglas de ESLint para Next, venia con la plantilla                        |
+| `typescript`                       | Tipos, venia con la plantilla                                             |
+| `react`, `react-dom`               | Los exige Next, la API no tiene pantallas                                 |
+| `@types/react`, `@types/react-dom` | Tipos de React, venian con la plantilla                                   |
+| `husky`, `lint-staged`             | Revisar lo modificado al commitear y correr `npm run check` al hacer push |
+| `@types/node`                      | Tipos de Node. Se subio a la version 24 porque Vitest lo exige            |
 
 ## IA
 
