@@ -1,0 +1,4 @@
+title = "Gastos compartidos (api)"
+
+[extend]
+useDefault = true
