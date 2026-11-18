@@ -1,5 +1,10 @@
 # AGENTS.md - API de gastos compartidos (proyecto 34)
 
+## Para cualquier IA
+
+Estas reglas valen para cualquier asistente: Claude Code, OpenCode, Codex, Gemini CLI, Cursor u otro.
+Cada herramienta tiene ademas su configuracion en el repo (ver ia/CONFIGURACION.md).
+
 ## Proyecto
 
 API para la app de gastos compartidos entre amigos. Maneja el login, los grupos, los gastos, los pagos y el balance.
@@ -57,7 +62,7 @@ El enunciado del docente esta en docs/enunciado.md y manda sobre todo lo demas.
 - Guardar secretos en el repo. Las claves reales viven solo en Vercel
 - vercel env pull
 - Salir de la carpeta de este repo
-- Editar la carpeta .claude
+- Editar la configuracion de la IA: .claude, opencode.json, .gemini, .codex e ia/hook
 - Instalar dependencias sin avisar y sin revisar que el paquete existe en npmjs.com
 - git push y vercel sin permiso
 - Usar curl, wget, sudo, rm -rf, git push --force o git reset --hard
