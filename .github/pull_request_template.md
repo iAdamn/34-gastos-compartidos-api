@@ -6,6 +6,13 @@
 
 - [ ] `npm run check` y `npm run build` en verde
 
+## Uso de IA
+
+- Que genero la IA en este cambio:
+- [ ] Lo entendi y puedo explicarlo linea por linea
+- [ ] Hay pruebas que cubren el cambio
+- [ ] No hay secretos (claves, tokens, `.env`) en el cambio
+
 ## Revision
 
 - [ ] Sin claves ni secretos en el codigo (solo en Vercel)
