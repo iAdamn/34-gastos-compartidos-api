@@ -15,9 +15,7 @@
 
 ## Que falta
 
-- De la persona: canario y las 10 pruebas de contencion con capturas (C2, C5), ensayo de la sustentacion (C9).
-- Revision final de Fable (B12, C8) y redactar las evidencias con los resultados reales (C6).
-- El trabajo `secretos` (gitleaks) de la CI esta escrito pero no se ha visto correr: necesita un `git push`, que autoriza la persona.
+- De la persona: ensayo de la sustentacion (C9).
 
 ## Notas
 
